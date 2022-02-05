@@ -9,10 +9,10 @@ from math  import gcd
 
 from pymtl3  import *
 from pymtl3.stdlib.test_utils import mk_test_case_table, run_sim
-
 from pymtl3.stdlib import stream
-from tut3_pymtl.gcd.GcdUnitFL  import GcdUnitFL
-from tut3_pymtl.gcd.GcdUnitMsg import GcdUnitMsgs
+
+from tut4_verilog.gcd.GcdUnitFL  import GcdUnitFL
+from tut4_verilog.gcd.GcdUnitMsg import GcdUnitMsgs
 
 # To ensure reproducible testing
 

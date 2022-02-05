@@ -6,7 +6,8 @@ import pytest
 
 from pymtl3 import *
 from pymtl3.stdlib.test_utils import run_sim
-from ..GcdUnitCL import gcd_cl, GcdUnitCL
+
+from tut4_verilog.gcd.GcdUnitCL import gcd_cl, GcdUnitCL
 
 # Reuse cases from FL tests
 

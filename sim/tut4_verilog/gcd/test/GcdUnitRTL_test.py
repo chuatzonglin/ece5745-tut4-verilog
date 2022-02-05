@@ -6,7 +6,8 @@ import pytest
 
 from pymtl3 import *
 from pymtl3.stdlib.test_utils import run_sim
-from ..GcdUnitRTL import GcdUnitRTL
+
+from tut4_verilog.gcd.GcdUnitRTL import GcdUnitRTL
 
 # Reuse tests from FL model
 

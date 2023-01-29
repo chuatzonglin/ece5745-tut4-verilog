@@ -7,7 +7,7 @@
  * Compile and run using Icarus verilog
  * iverilog -g2012 -o logic-shift logic-shift.v && ./logic-shift
  * -----
- * Last Modified: 2022-12-06 17:21:17
+ * Last Modified: 2023-01-29 19:56:58
  * Modified By: Kuroba
  * -----
  * MIT License
@@ -56,6 +56,9 @@ module top;
         C = $signed(A) >>> 1; $display( "8'b1110_0101 >>> 1 = %b", C );
         C = $signed(A) >>> 2; $display( "8'b1110_0101 >>> 2 = %b", C );
         C = $signed(A) >>> 3; $display( "8'b1110_0101 >>> 3 = %b", C );
+
+        // For asr, $signed() is required
+        C = A >>> 3; $display( "(unsigned) 8'b1110_0101 >>> 3 = %b", C );
         $display( "" );
 
         // Variable shift amount for logical shifts

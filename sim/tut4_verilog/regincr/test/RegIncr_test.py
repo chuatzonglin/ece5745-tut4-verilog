@@ -2,6 +2,8 @@
 # RegIncr_test
 #=========================================================================
 
+import random
+
 from pymtl3 import *
 from pymtl3.stdlib.test_utils import config_model_with_cmdline_opts
 
@@ -12,6 +14,17 @@ from ..RegIncr import RegIncr
 # "cmdline_opts" as an argument to your unit test source code,
 # and then you can dump VCD by adding --dump-vcd option to pytest
 # invocation from the command line.
+
+random.seed(0xdeadbeef)
+
+def mk_tvec(in_vals, nbits = 8):
+  tvec = []
+  out_vals = ['?']
+  
+  for in_ in in_vals:
+    out_vals.append(in_ + 1 if in_ < 2**nbits - 1 else 0)
+    tvec.append([in_, out_vals.pop(0)])
+  return tvec
 
 def test_basic( cmdline_opts ):
 
@@ -55,3 +68,7 @@ def test_basic( cmdline_opts ):
   # set the input and verify the output of the registered incrementer.
   # ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+  tvec = mk_tvec([random.randint(0, 2**8 - 1) for _ in range(10)])
+
+  for (in_, out) in tvec:
+    t(in_, out)

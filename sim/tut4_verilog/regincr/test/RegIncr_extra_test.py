@@ -3,6 +3,7 @@
 #=========================================================================
 
 import random
+import pytest
 
 from pymtl3 import *
 from pymtl3.stdlib.test_utils import run_test_vector_sim
@@ -40,3 +41,52 @@ def test_large( cmdline_opts ):
 # for random testing.
 # ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+#-------------------------------------------------------------------------
+# test_overflow
+#-------------------------------------------------------------------------
+
+def test_overflow( cmdline_opts ):
+  run_test_vector_sim( RegIncr(), [
+    ('in_   out*'),
+    [ 0xfe, '?'  ],
+    [ 0xff, 0xff ],
+    [ 0x00, 0x00 ],
+  ], cmdline_opts )
+
+#-------------------------------------------------------------------------
+# mk_test_vector_table
+#-------------------------------------------------------------------------
+def mk_test_vector_table( nbits, inputs ):
+  # Add initial invalid outputs to the list of output values
+  output_val = ['?']
+  
+  # Calculate the value for sum and carry out
+  for x in inputs:
+    output_val.append(
+      x+1 if x < 2**nbits - 1 else 0
+    )
+  
+  # Additional 0 to finish the output
+  inputs.append(0)
+
+  # Put inputs_val and outputs_val together to make test_vector_table
+  test_vector_table = [ ('in_   out*') ]
+  for in_, out in zip(inputs, output_val):
+    test_vector_table.append( 
+      [in_, out]
+      )
+  return test_vector_table
+
+#-------------------------------------------------------------------------
+# test_random
+#-------------------------------------------------------------------------
+@pytest.mark.parametrize("N", [i for i in range(4, 10, 2)])
+def test_random( N, cmdline_opts ):
+  nbits = 8
+  min_val = 0
+  max_val = 2**nbits - 1
+  run_test_vector_sim( RegIncr(), 
+    mk_test_vector_table(nbits,
+      [random.randint(min_val, max_val) for _ in range(N)]
+      ), 
+    cmdline_opts )

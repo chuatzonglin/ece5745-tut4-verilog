@@ -22,6 +22,13 @@ module top;
   // will need to instantiate and connect a RegIncr model here.
   // '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+  tut4_verilog_regincr_RegIncr dut (
+    .clk(clk),
+    .reset(reset),
+    .in_(in),
+    .out(out)
+  );
+
   // Verify functionality
 
   initial begin

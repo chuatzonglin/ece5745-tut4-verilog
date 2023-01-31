@@ -7,8 +7,6 @@
 `ifndef TUT4_VERILOG_SORT_MIN_MAX_UNIT_V
 `define TUT4_VERILOG_SORT_MIN_MAX_UNIT_V
 
-`include "vc/trace.v"
-
 module tut4_verilog_sort_MinMaxUnit
 #(
   parameter p_nbits = 1

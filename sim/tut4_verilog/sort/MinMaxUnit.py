@@ -24,3 +24,6 @@ class MinMaxUnit( VerilogPlaceholder, Component ):
     # Configurations
 
     s.set_metadata( VerilogPlaceholderPass.params, { 'p_nbits' : nbits } )
+
+  def line_trace( s ):
+    return f"in0: {s.in0} in1: {s.in1} min: {s.out_min} max: {s.out_max}"

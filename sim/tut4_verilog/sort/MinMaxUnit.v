@@ -39,26 +39,6 @@ module tut4_verilog_sort_MinMaxUnit
     end
   end
 
-  //----------------------------------------------------------------------
-  // Line Tracing
-  //----------------------------------------------------------------------
-  `ifndef SYNTHESIS
-  logic [`VC_TRACE_NBITS-1:0] str;
-  `VC_TRACE_BEGIN
-  begin
-    // Inputs
-    $sformat( str, "{in0: %x, in1: %x}", in0, in1 );
-    vc_trace.append_str( trace_str, str  );
-    vc_trace.append_str( trace_str, "|" );
-
-    // Outputs
-    $sformat( str, "{out_min: %x, out_max: %x}", out_min, out_max );
-    vc_trace.append_str( trace_str, str  );
-
-  end
-  `VC_TRACE_END
-  `endif /* SYNTHESIS */
-
 endmodule
 
 `endif /* TUT4_VERILOG_SORT_MIN_MAX_UNIT_V */

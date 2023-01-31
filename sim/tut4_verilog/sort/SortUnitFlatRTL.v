@@ -250,30 +250,35 @@ module tut4_verilog_sort_SortUnitFlatRTL
     // Inputs
 
     $sformat( str, "{%x,%x,%x,%x}", in0, in1, in2, in3 );
+    vc_trace.append_str( trace_str, "in:  " );
     vc_trace.append_val_str( trace_str, in_val, str  );
     vc_trace.append_str( trace_str, "|" );
 
     // Pipeline stage S1
 
     $sformat( str, "{%x,%x,%x,%x}", elm0_S1, elm1_S1, elm2_S1, elm3_S1 );
+    vc_trace.append_str( trace_str, "S1:  " );
     vc_trace.append_val_str( trace_str, val_S1, str  );
     vc_trace.append_str( trace_str, "|" );
 
     // Pipeline stage S2
 
     $sformat( str, "{%x,%x,%x,%x}", elm0_S2, elm1_S2, elm2_S2, elm3_S2 );
+    vc_trace.append_str( trace_str, "S2:  " );
     vc_trace.append_val_str( trace_str, val_S2, str  );
     vc_trace.append_str( trace_str, "|" );
 
     // Pipeline stage S3
 
     $sformat( str, "{%x,%x,%x,%x}", elm0_S3, elm1_S3, elm2_S3, elm3_S3 );
+    vc_trace.append_str( trace_str, "S3:  " );
     vc_trace.append_val_str( trace_str, val_S3, str  );
     vc_trace.append_str( trace_str, "|" );
 
     // Outputs
 
     $sformat( str, "{%x,%x,%x,%x}", out0, out1, out2, out3 );
+    vc_trace.append_str( trace_str, "out: " );
     vc_trace.append_val_str( trace_str, out_val, str  );
 
   end

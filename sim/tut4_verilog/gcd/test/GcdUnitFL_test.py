@@ -59,6 +59,7 @@ basic_cases = [
   ( 250,    190   , 10   ),
   ( 5,      250   , 5    ),
   ( 0xffff, 0x00ff, 0xff ),
+  ( 0x5   , 0x5   , 0x5  ),
 ]
 
 basic_msgs = []

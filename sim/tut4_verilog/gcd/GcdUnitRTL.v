@@ -28,12 +28,13 @@ module tut4_verilog_gcd_GcdUnitDpath
 
   input  logic        a_reg_en,   // Enable for A register
   input  logic        b_reg_en,   // Enable for B register
-  input  logic [1:0]  a_mux_sel,  // Sel for mux in front of A reg
+  input  logic        a_mux_sel,  // Sel for mux in front of A reg
   input  logic        b_mux_sel,  // sel for mux in front of B reg
+  input  logic        sub_mux_sel,   
 
   // Status signals
 
-  output logic        is_b_zero,  // Output of zero comparator
+  output logic        is_sub_in1_zero,  // Output of zero comparator
   output logic        is_a_lt_b   // Output of less-than comparator
 );
 
@@ -53,12 +54,11 @@ module tut4_verilog_gcd_GcdUnitDpath
   logic [c_nbits-1:0] sub_out;
   logic [c_nbits-1:0] a_mux_out;
 
-  vc_Mux3#(c_nbits) a_mux
+  vc_Mux2#(c_nbits) a_mux
   (
     .sel   (a_mux_sel),
     .in0   (recv_msg_a),
-    .in1   (b_reg_out),
-    .in2   (sub_out),
+    .in1   (sub_out),
     .out   (a_mux_out)
   );
 
@@ -83,7 +83,7 @@ module tut4_verilog_gcd_GcdUnitDpath
   (
     .sel   (b_mux_sel),
     .in0   (recv_msg_b),
-    .in1   (a_reg_out),
+    .in1   (sub_in1_mux_out),
     .out   (b_mux_out)
   );
 
@@ -107,20 +107,41 @@ module tut4_verilog_gcd_GcdUnitDpath
     .out   (is_a_lt_b)
   );
 
+  // Mux for selecting input of subtractor
+  logic [c_nbits-1:0] sub_in0_mux_out;
+
+  vc_Mux2#(c_nbits) sub_in0_mux
+  (
+    .sel   (sub_mux_sel),
+    .in0   (a_reg_out),
+    .in1   (b_reg_out),
+    .out   (sub_in0_mux_out)
+  );
+
+  logic [c_nbits-1:0] sub_in1_mux_out;
+  
+  vc_Mux2#(c_nbits) sub_in1_mux
+  (
+    .sel   (sub_mux_sel),
+    .in0   (b_reg_out),
+    .in1   (a_reg_out),
+    .out   (sub_in1_mux_out)
+  );
+
   // Zero comparator
 
-  vc_ZeroComparator#(c_nbits) b_zero
+  vc_ZeroComparator#(c_nbits) sub_in1_zero
   (
-    .in    (b_reg_out),
-    .out   (is_b_zero)
+    .in    (sub_in1_mux_out),
+    .out   (is_sub_in1_zero)
   );
 
   // Subtractor
 
   vc_Subtractor#(c_nbits) sub
   (
-    .in0   (a_reg_out),
-    .in1   (b_reg_out),
+    .in0   (sub_in0_mux_out),
+    .in1   (sub_in1_mux_out),
     .out   (sub_out)
   );
 
@@ -150,12 +171,13 @@ module tut4_verilog_gcd_GcdUnitCtrl
 
   output logic        a_reg_en,   // Enable for A register
   output logic        b_reg_en,   // Enable for B register
-  output logic [1:0]  a_mux_sel,  // Sel for mux in front of A reg
+  output logic        a_mux_sel,  // Sel for mux in front of A reg
   output logic        b_mux_sel,  // sel for mux in front of B reg
+  output logic        sub_mux_sel,  // sel for muxes in front subtractor
 
   // Data signals
 
-  input  logic        is_b_zero,  // Output of zero comparator
+  input  logic        is_sub_in1_zero,  // Output of zero comparator
   input  logic        is_a_lt_b   // Output of less-than comparator
 );
 
@@ -193,7 +215,7 @@ module tut4_verilog_gcd_GcdUnitCtrl
 
   assign req_go       = recv_val && recv_rdy;
   assign resp_go      = send_val && send_rdy;
-  assign is_calc_done = !is_a_lt_b && is_b_zero;
+  assign is_calc_done = is_sub_in1_zero;
 
   always_comb begin
 
@@ -216,21 +238,21 @@ module tut4_verilog_gcd_GcdUnitCtrl
 
   localparam a_x   = 2'dx;
   localparam a_ld  = 2'd0;
-  localparam a_b   = 2'd1;
-  localparam a_sub = 2'd2;
+  localparam a_in0 = 2'd1;
 
   localparam b_x   = 1'dx;
   localparam b_ld  = 1'd0;
-  localparam b_a   = 1'd1;
+  localparam b_in1 = 1'd1;
 
   function void cs
   (
     input logic       cs_recv_rdy,
     input logic       cs_send_val,
-    input logic [1:0] cs_a_mux_sel,
+    input logic       cs_a_mux_sel,
     input logic       cs_a_reg_en,
     input logic       cs_b_mux_sel,
-    input logic       cs_b_reg_en
+    input logic       cs_b_reg_en,
+    input logic       cs_sub_mux_sel
   );
   begin
     recv_rdy  = cs_recv_rdy;
@@ -239,30 +261,28 @@ module tut4_verilog_gcd_GcdUnitCtrl
     b_reg_en  = cs_b_reg_en;
     a_mux_sel = cs_a_mux_sel;
     b_mux_sel = cs_b_mux_sel;
+    sub_mux_sel = cs_sub_mux_sel;
   end
   endfunction
 
   // Labels for Mealy transistions
 
-  logic do_swap;
-  logic do_sub;
+  logic do_swap_n_sub;
 
-  assign do_swap = is_a_lt_b;
-  assign do_sub  = !is_b_zero;
+  assign do_swap_n_sub = is_a_lt_b;
 
   // Set outputs using a control signal "table"
 
   always_comb begin
 
-    cs( 0, 0, a_x, 0, b_x, 0 );
+    cs( 0, 0, a_x, 0, b_x, 0 , 0);
     case ( state_reg )
-      //                             recv send a mux  a  b mux b
-      //                             rdy  val  sel    en sel   en
-      STATE_IDLE:                cs( 1,   0,   a_ld,  1, b_ld, 1 );
-      STATE_CALC: if ( do_swap ) cs( 0,   0,   a_b,   1, b_a,  1 );
-             else if ( do_sub  ) cs( 0,   0,   a_sub, 1, b_x,  0 );
-      STATE_DONE:                cs( 0,   1,   a_x,   0, b_x,  0 );
-      default                    cs('x,  'x,   a_x,  'x, b_x, 'x );
+      //                             recv send a mux  a  b mux  b   sub mux
+      //                             rdy  val  sel    en sel    en  sel
+      STATE_IDLE:                cs( 1,   0,   a_ld,  1, b_ld,  1 , 'x);
+      STATE_CALC:                cs( 0,   0,   a_in0, 1, b_in1, 1 ,  do_swap_n_sub);
+      STATE_DONE:                cs( 0,   1,   a_x,   0, b_x,   0 , 'x);
+      default                    cs('x,  'x,   a_x,  'x, b_x,  'x , 'x);
 
     endcase
 
@@ -296,12 +316,13 @@ module tut4_verilog_gcd_GcdUnitRTL
 
   logic        a_reg_en;
   logic        b_reg_en;
-  logic [1:0]  a_mux_sel;
+  logic        a_mux_sel;
   logic        b_mux_sel;
+  logic        sub_mux_sel;
 
   // Data signals
 
-  logic        is_b_zero;
+  logic        is_sub_in1_zero;
   logic        is_a_lt_b;
 
   // Control unit
@@ -344,20 +365,18 @@ module tut4_verilog_gcd_GcdUnitRTL
     case ( ctrl.state_reg )
 
       ctrl.STATE_IDLE:
-        vc_trace.append_str( trace_str, "I " );
+        vc_trace.append_str( trace_str, "I  " );
 
       ctrl.STATE_CALC:
       begin
-        if ( ctrl.do_swap )
-          vc_trace.append_str( trace_str, "Cs" );
-        else if ( ctrl.do_sub )
-          vc_trace.append_str( trace_str, "C-" );
+        if ( ctrl.do_swap_n_sub )
+          vc_trace.append_str( trace_str, "Cs-" );
         else
-          vc_trace.append_str( trace_str, "C " );
+          vc_trace.append_str( trace_str, "C- " );
       end
 
       ctrl.STATE_DONE:
-        vc_trace.append_str( trace_str, "D " );
+        vc_trace.append_str( trace_str, "D  " );
 
       default:
         vc_trace.append_str( trace_str, "? " );

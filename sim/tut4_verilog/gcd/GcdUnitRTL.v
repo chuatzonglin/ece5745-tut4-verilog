@@ -274,7 +274,6 @@ module tut4_verilog_gcd_GcdUnitCtrl
   logic send_go;
 
   assign do_swap_n_sub = is_a_lt_b;
-  assign send_go = is_sub_in1_zero;
 
   // Set outputs using a control signal "table"
 
@@ -282,12 +281,21 @@ module tut4_verilog_gcd_GcdUnitCtrl
 
     cs( 0, 0, a_x, 0, b_x, 0 , 0);
     case ( state_reg )
-      //                             recv       send a mux  a  b mux  b   sub mux
-      //                             rdy        val  sel    en sel    en  sel
-      STATE_IDLE:                cs( 1,         0,   a_ld,  1, b_ld,  1 , 'x);
-      STATE_CALC:                cs( 0,   send_go,   a_in0, 1, b_in1, 1 ,  do_swap_n_sub);
-      STATE_DONE:                cs( 0,         1,   a_x,   0, b_x,   0 , 'x);
-      default                    cs('x,        'x,   a_x,  'x, b_x,  'x , 'x);
+      //                             recv send a mux  a  b mux  b   sub mux
+      //                             rdy  val  sel    en sel    en  sel
+      STATE_IDLE:                cs( 1,   0,   a_ld,  1, b_ld,  1 , 'x);
+      
+      //                             recv send               a mux  a  
+      //                             rdy  val                sel    en 
+      STATE_CALC:                cs( 0,   is_sub_in1_zero,   a_in0, 1, 
+      //                             b mux  b    sub mux
+      //                             sel    en   sel
+                                     b_in1, 1 ,  do_swap_n_sub);
+
+      //                             recv send a mux  a  b mux  b   sub mux
+      //                             rdy  val  sel    en sel    en  sel
+      STATE_DONE:                cs( 0,   1,   a_x,   0, b_x,   0 , 'x);
+      default                    cs('x,  'x,   a_x,  'x, b_x,  'x , 'x);
 
     endcase
 

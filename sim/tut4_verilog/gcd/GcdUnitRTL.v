@@ -212,14 +212,10 @@ module tut4_verilog_gcd_GcdUnitCtrl
   logic req_go;
   logic resp_go;
   logic is_calc_done;
-  logic is_calc_resp_done;
-  logic is_calc_resp_req_done;
 
   assign req_go                 = recv_val && recv_rdy;
   assign resp_go                = send_val && send_rdy;
   assign is_calc_done           = is_sub_in1_zero;
-  assign is_calc_resp_done      = is_calc_done && resp_go;
-  assign is_calc_resp_req_done  = is_calc_resp_done && req_go;
 
   always_comb begin
 
@@ -227,11 +223,11 @@ module tut4_verilog_gcd_GcdUnitCtrl
 
     case ( state_reg )
 
-      STATE_IDLE: if ( req_go                 )    state_next = STATE_CALC;
-      STATE_CALC: if ( is_calc_resp_req_done  )    state_next = STATE_CALC;
-             else if ( is_calc_resp_done      )    state_next = STATE_IDLE;
-             else if ( is_calc_done           )    state_next = STATE_DONE;
-      STATE_DONE: if ( resp_go                )    state_next = STATE_IDLE;
+      STATE_IDLE: if ( req_go        ) state_next = STATE_CALC;
+      STATE_CALC: if ( !is_calc_done ) state_next = STATE_CALC;
+             else if ( !resp_go      ) state_next = STATE_DONE;
+             else if ( !req_go       ) state_next = STATE_IDLE;
+      STATE_DONE: if ( resp_go       ) state_next = STATE_IDLE;
       default:    state_next = 'x;
 
     endcase
@@ -283,16 +279,16 @@ module tut4_verilog_gcd_GcdUnitCtrl
 
     cs( 0, 0, a_x, 0, b_x, 0 , 0);
     case ( state_reg )
-      //                                    recv send a mux  a  b mux  b   sub mux
-      //                                    rdy  val  sel    en sel    en  sel
-      STATE_IDLE:                       cs( 1,   0,   a_ld,  1, b_ld,  1 , 'x);
-      STATE_CALC: if (!is_sub_in1_zero) cs( 0,   0,   a_in0, 1,b_in1,  1 , do_swap);
-             else if (!resp_go)         cs( 0,   1,   a_in0, 1,b_in1,  1 , do_swap);
-             else                       cs( 1,   1,   a_ld , 1,b_ld ,  1 , do_swap);
-      //                                    recv send a mux  a  b mux  b   sub mux
-      //                                    rdy  val  sel    en sel    en  sel
-      STATE_DONE:                       cs( 0,   1,   a_x,   0, b_x,   0 , 'x);
-      default                           cs('x,  'x,   a_x,  'x, b_x,  'x , 'x);
+      //                                 recv send a mux  a  b mux  b   sub mux
+      //                                 rdy  val  sel    en sel    en  sel
+      STATE_IDLE:                    cs( 1,   0,   a_ld,  1, b_ld,  1 , 'x);
+      STATE_CALC: if (!is_calc_done) cs( 0,   0,   a_in0, 1,b_in1,  1 , do_swap);
+             else if (!resp_go)      cs( 0,   1,   a_in0, 1,b_in1,  1 , do_swap);
+             else                    cs( 1,   1,   a_ld , 1,b_ld ,  1 , do_swap);
+      //                                 recv send a mux  a  b mux  b   sub mux
+      //                                 rdy  val  sel    en sel    en  sel
+      STATE_DONE:                    cs( 0,   1,   a_x,   0, b_x,   0 , 'x);
+      default                        cs('x,  'x,   a_x,  'x, b_x,  'x , 'x);
 
     endcase
 
